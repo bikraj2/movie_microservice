@@ -4,22 +4,32 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"net/http"
 
 	"bikraj.movie_microservice.net/movie/internal/gateway"
+	"bikraj.movie_microservice.net/pkg/discovery"
 	"bikraj.movie_microservice.net/rating/pkg/model"
 )
 
 type Gateway struct {
-	addr string
+	registry discovery.Registry
 }
 
-func New(addr string) *Gateway {
-	return &Gateway{addr: addr}
+func New(registry discovery.Registry) *Gateway {
+	return &Gateway{registry: registry}
 }
 
 func (g *Gateway) GetAggreatedRating(ctx context.Context, recordId model.RecordID, recordType model.RecordType) (float64, error) {
-	req, err := http.NewRequest(http.MethodGet, g.addr+"/rating", nil)
+	addr, err := g.registry.ServiceAddresses(ctx, "rating")
+	if err != nil {
+		return 0, err
+	}
+	if len(addr) == 0 {
+		return 0, err
+	}
+	url := "http://" + addr[rand.Intn(len(addr))] + "/rating"
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return 0, err
 	}
@@ -51,7 +61,15 @@ func (g *Gateway) GetAggreatedRating(ctx context.Context, recordId model.RecordI
 }
 
 func (g *Gateway) PutRating(ctx context.Context, recordId model.RecordID, recordType model.RecordType, rating *model.Rating) error {
-	req, err := http.NewRequest(http.MethodPut, g.addr+"/rating", nil)
+	addr, err := g.registry.ServiceAddresses(ctx, "rating")
+	if err != nil {
+		return err
+	}
+	if len(addr) == 0 {
+		return err
+	}
+	url := "http://" + addr[rand.Intn(len(addr))] + "/rating"
+	req, err := http.NewRequest(http.MethodPut, url, nil)
 	if err != nil {
 		return err
 	}
