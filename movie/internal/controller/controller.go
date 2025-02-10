@@ -14,7 +14,7 @@ var ErrNotFound = errors.New("not found")
 
 type ratingGateway interface {
 	PutRating(ctx context.Context, recordId ratingModel.RecordID, recordType ratingModel.RecordType, rating *ratingModel.Rating) error
-	GetAggreatedRating(ctx context.Context, recordId ratingModel.RecordID, recordType ratingModel.RecordType) (float64, error)
+	GetAggregatedRating(ctx context.Context, recordId ratingModel.RecordID, recordType ratingModel.RecordType) (float64, error)
 }
 
 type metadataGateway interface {
@@ -38,7 +38,7 @@ func (ctrl *Controller) Get(ctx context.Context, id string) (*model.MovieDetails
 	}
 	details := &model.MovieDetails{Metadata: *metadata}
 
-	rating, err := ctrl.ratingGateway.GetAggreatedRating(ctx, ratingModel.RecordID(id), ratingModel.RecordTypeMovie)
+	rating, err := ctrl.ratingGateway.GetAggregatedRating(ctx, ratingModel.RecordID(id), ratingModel.RecordTypeMovie)
 	if err != nil && errors.Is(err, gateway.ErrNotFound) {
 	} else if err != nil {
 		details.Rating = &rating

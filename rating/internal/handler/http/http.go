@@ -36,7 +36,7 @@ func (h *Handler) Handle(w http.ResponseWriter, req *http.Request) {
 
 	switch req.Method {
 	case http.MethodGet:
-		v, err := h.ctrl.GetAgrregatedRaring(req.Context(), recordID, recordType)
+		v, err := h.ctrl.GetAgrregatedRating(req.Context(), recordID, recordType)
 		if err != nil && errors.Is(err, rating.ErrRecordNotFound) {
 			w.WriteHeader(http.StatusNotFound)
 			return

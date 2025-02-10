@@ -5,16 +5,17 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net"
 	"time"
 
-	"net/http"
-
+	"bikraj.movie_microservice.net/gen"
 	movie "bikraj.movie_microservice.net/movie/internal/controller"
-	metadatagateway "bikraj.movie_microservice.net/movie/internal/gateway/metdata/http"
-	ratinggateway "bikraj.movie_microservice.net/movie/internal/gateway/rating/http"
-	httphandler "bikraj.movie_microservice.net/movie/internal/handler/http"
+	metadatagateway "bikraj.movie_microservice.net/movie/internal/gateway/metdata/grpc"
+	ratinggateway "bikraj.movie_microservice.net/movie/internal/gateway/rating/grpc"
+	grpchandler "bikraj.movie_microservice.net/movie/internal/handler/grpc"
 	"bikraj.movie_microservice.net/pkg/discovery"
 	consul "bikraj.movie_microservice.net/pkg/discovery/consul"
+	"google.golang.org/grpc"
 )
 
 const (
@@ -52,11 +53,14 @@ func main() {
 	metadataGateway := metadatagateway.New(registry)
 	ratingGateway := ratinggateway.New(registry)
 
-	ctrl := movie.New(ratingGateway, metadataGateway)
-	h := httphandler.New(ctrl)
+	svc := movie.New(ratingGateway, metadataGateway)
+	h := grpchandler.New(svc)
 
-	http.Handle("/movie", http.HandlerFunc(h.GetMovieDetails))
-	if err := http.ListenAndServe(":8083", nil); err != nil {
-		panic(err)
+	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%v", port))
+	if err != nil {
+		log.Fatalf("err while listening: %v", err.Error())
 	}
+	srv := grpc.NewServer()
+	gen.RegisterMovieServiceServer(srv, h)
+	srv.Serve(lis)
 }
