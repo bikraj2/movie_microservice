@@ -27,7 +27,7 @@ func New(repo ratingRepository) *Controller {
 // GetAgrregatedRaring returns the agrregated rating for
 // a record or ErrRecordNotFound if not rating at all.
 
-func (c *Controller) GetAgrregatedRaring(ctx context.Context, recordID model.RecordID, recordType model.RecordType) (float64, error) {
+func (c *Controller) GetAgrregatedRating(ctx context.Context, recordID model.RecordID, recordType model.RecordType) (float64, error) {
 	ratings, err := c.repo.Get(ctx, recordID, recordType)
 	if err != nil {
 		switch {

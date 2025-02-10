@@ -5,14 +5,16 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"net/http"
+	"net"
 	"time"
 
+	"bikraj.movie_microservice.net/gen"
 	"bikraj.movie_microservice.net/pkg/discovery"
 	"bikraj.movie_microservice.net/pkg/discovery/consul"
 	"bikraj.movie_microservice.net/rating/internal/controller/rating"
-	httphandler "bikraj.movie_microservice.net/rating/internal/handler/http"
+	grpcHandler "bikraj.movie_microservice.net/rating/internal/handler/grpc"
 	"bikraj.movie_microservice.net/rating/internal/repository/memory"
+	"google.golang.org/grpc"
 )
 
 const (
@@ -47,11 +49,14 @@ func main() {
 	defer registry.DeRegister(ctx, instanceID, servicename)
 	repo := memory.New()
 	ctrl := rating.New(repo)
-	h := httphandler.New(ctrl)
-	http.Handle("/metadata", http.HandlerFunc(h.Handle))
-	err = http.ListenAndServe(fmt.Sprintf(":%v", port), nil)
+	h := grpcHandler.New(ctrl)
+	lis, err := net.Listen("tcp", "locahost:8082")
 	if err != nil {
-		panic(err)
+		log.Fatalf("failed to listen: %v", err.Error())
 	}
+	srv := grpc.NewServer()
+	gen.RegisterRatingServiceServer(srv, h)
+	srv.Serve(lis)
 	log.Println("Started the server on port: ", port)
+
 }

@@ -5,14 +5,17 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"time"
 
+	"bikraj.movie_microservice.net/gen"
 	"bikraj.movie_microservice.net/metadata/internal/controller/metadata"
-	httphandler "bikraj.movie_microservice.net/metadata/internal/handler"
+	grpchandler "bikraj.movie_microservice.net/metadata/internal/handler/grpc"
 	"bikraj.movie_microservice.net/metadata/internal/repository/memory"
 	"bikraj.movie_microservice.net/pkg/discovery"
 	"bikraj.movie_microservice.net/pkg/discovery/consul"
+	"google.golang.org/grpc"
 )
 
 const servicename = "metadata"
@@ -41,14 +44,16 @@ func main() {
 			time.Sleep(1 * time.Second)
 		}
 	}()
-	defer registry.Deregister(ctx, instanceID, servicename)
+	defer registry.DeRegister(ctx, instanceID, servicename)
 	repo := memory.New()
 	ctrl := metadata.New(repo)
-	h := httphandler.New(ctrl)
-	http.Handle("/metadata", http.HandlerFunc(h.GetMetadata))
-	err = http.ListenAndServe(fmt.Sprintf(":%v", port), nil)
+	h := grpchandler.New(ctrl)
+	lis, err := net.Listen("tcp", "localhost:8081")
 	if err != nil {
-		panic(err)
+		log.Fatalf("faile to listen : %v", err.Error())
 	}
+	srv := grpc.NewServer()
+	gen.RegisterMetadataServiceServer(srv, h)
+	srv.Serve(lis)
 	log.Println("Started the server on port: ", port)
 }
