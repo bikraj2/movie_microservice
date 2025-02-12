@@ -5,8 +5,8 @@ import (
 	"encoding/xml"
 	"fmt"
 
+	"bikraj.movie_microservice.net/gen"
 	model "bikraj.movie_microservice.net/metadata/pkg"
-	"bikraj.movie_microservice.net/src/gen"
 	"github.com/gogo/protobuf/proto"
 )
 

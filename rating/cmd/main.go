@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"flag"
 	"fmt"
 	"log"
@@ -13,8 +14,10 @@ import (
 	"bikraj.movie_microservice.net/pkg/discovery/consul"
 	"bikraj.movie_microservice.net/rating/internal/controller/rating"
 	grpcHandler "bikraj.movie_microservice.net/rating/internal/handler/grpc"
-	"bikraj.movie_microservice.net/rating/internal/repository/memory"
+	repo "bikraj.movie_microservice.net/rating/internal/repository/mysql"
+	_ "github.com/go-sql-driver/mysql"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 const (
@@ -47,15 +50,20 @@ func main() {
 		}
 	}()
 	defer registry.DeRegister(ctx, instanceID, servicename)
-	repo := memory.New()
-	ctrl := rating.New(repo)
+	db, err := sql.Open("mysql", "root:pa55word@/movie")
+	if err != nil {
+		panic(err)
+	}
+	repo := repo.New(db)
+	ctrl := rating.New(repo, nil)
 	h := grpcHandler.New(ctrl)
-	lis, err := net.Listen("tcp", "locahost:8082")
+	lis, err := net.Listen("tcp", "localhost:8082")
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err.Error())
 	}
 	srv := grpc.NewServer()
 	gen.RegisterRatingServiceServer(srv, h)
+	reflection.Register(srv)
 	srv.Serve(lis)
 	log.Println("Started the server on port: ", port)
 

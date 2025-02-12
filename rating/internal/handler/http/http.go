@@ -53,7 +53,7 @@ func (h *Handler) Handle(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 		if err := h.ctrl.PutRating(req.Context(), recordID, recordType, &model.Rating{RatingValue: model.RatingValue(v), UserID: userID}); err != nil {
-			log.Printf("Repository put erro: %^v ", err)
+			log.Printf("Repository put error: %^v ", err)
 			return
 		}
 	default:

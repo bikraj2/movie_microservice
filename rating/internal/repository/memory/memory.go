@@ -7,10 +7,6 @@ import (
 	"bikraj.movie_microservice.net/rating/pkg/model"
 )
 
-var (
-	ErrRecordNotFound = errors.New("record not found")
-)
-
 type Repository struct {
 	data map[model.RecordType]map[model.RecordID][]model.Rating
 }
