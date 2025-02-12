@@ -1,0 +1,23 @@
+
+
+# https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
+apiVersion: apps/v1
+kind: Deployment
+movie:
+  name: movie  
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: movie
+  template:
+    movie:
+      labels:
+        app: movie
+    spec:
+      containers:
+      - name: movie
+        image: bikraj2/movie:1.0.0
+        imagePullPolicy: IfNotPresent
+        ports:
+          - containerPort:8083

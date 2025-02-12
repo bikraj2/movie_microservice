@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 	"time"
 
 	"bikraj.movie_microservice.net/gen"
@@ -16,6 +17,7 @@ import (
 	"bikraj.movie_microservice.net/pkg/discovery"
 	consul "bikraj.movie_microservice.net/pkg/discovery/consul"
 	"google.golang.org/grpc"
+	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -28,6 +30,19 @@ func main() {
 	flag.Parse()
 	log.Printf("Server listening on port %d", port)
 
+	f, err := os.Open("base.yaml")
+	if err != nil {
+		panic(err)
+	}
+
+	defer f.Close()
+	var cfg serviceConfig
+
+	err = yaml.NewDecoder(f).Decode(&cfg)
+	if err != nil {
+		panic(err)
+	}
+
 	ctx := context.Background()
 	registry, err := consul.NewRegistry("localhost:8500")
 	if err != nil {
@@ -35,7 +50,7 @@ func main() {
 	}
 
 	instanceID := discovery.GenerateInstanceID(serviceName)
-	if err := registry.Register(ctx, instanceID, serviceName, fmt.Sprintf("locahost:%d", port)); err != nil {
+	if err := registry.Register(ctx, instanceID, serviceName, fmt.Sprintf("locahost:%d", cfg.APIConfig.Port)); err != nil {
 		panic(err)
 	}
 
@@ -56,7 +71,7 @@ func main() {
 	svc := movie.New(ratingGateway, metadataGateway)
 	h := grpchandler.New(svc)
 
-	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%v", port))
+	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%v", cfg.APIConfig.Port))
 	if err != nil {
 		log.Fatalf("err while listening: %v", err.Error())
 	}

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 	"time"
 
 	"bikraj.movie_microservice.net/gen"
@@ -18,11 +19,19 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+	"gopkg.in/yaml.v3"
 )
 
 const (
 	servicename = "rating"
 )
+
+type serviceConfig struct {
+	APIConfig apiConfig `yaml:"api"`
+}
+type apiConfig struct {
+	Port int `yaml:"port"`
+}
 
 func main() {
 
@@ -30,6 +39,18 @@ func main() {
 	flag.IntVar(&port, "port", 8082, "api Handler port")
 	flag.Parse()
 	log.Println("Starting the movie metadata service")
+	f, err := os.Open("base.yaml")
+	if err != nil {
+		panic(err)
+	}
+
+	defer f.Close()
+	var cfg serviceConfig
+	fmt.Println()
+	err = yaml.NewDecoder(f).Decode(&cfg)
+	if err != nil {
+		panic(err)
+	}
 	registry, err := consul.NewRegistry("localhost:8500")
 	if err != nil {
 		panic(err)
@@ -38,7 +59,7 @@ func main() {
 
 	instanceID := discovery.GenerateInstanceID(servicename)
 
-	if err := registry.Register(ctx, instanceID, servicename, fmt.Sprintf("locahhost:%v", port)); err != nil {
+	if err := registry.Register(ctx, instanceID, servicename, fmt.Sprintf("locahhost:%v", cfg.APIConfig.Port)); err != nil {
 		panic(err)
 	}
 	go func() {
@@ -57,14 +78,14 @@ func main() {
 	repo := repo.New(db)
 	ctrl := rating.New(repo, nil)
 	h := grpcHandler.New(ctrl)
-	lis, err := net.Listen("tcp", "localhost:8082")
+	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", cfg.APIConfig.Port))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err.Error())
 	}
 	srv := grpc.NewServer()
 	gen.RegisterRatingServiceServer(srv, h)
 	reflection.Register(srv)
+	log.Println("Started the server on port: ", cfg.APIConfig.Port)
 	srv.Serve(lis)
-	log.Println("Started the server on port: ", port)
 
 }
