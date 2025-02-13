@@ -21,8 +21,16 @@ func New(svc *rating.Controller) *Handler {
 }
 
 func (h *Handler) GetAggregatedRating(ctx context.Context, req *gen.GetAggregatedRatingRequest) (*gen.GetAggregatedRatingResponse, error) {
-	if req == nil || req.RecordId == "" || req.RecordType == "" {
-		return nil, status.Errorf(codes.InvalidArgument, "nil req or empty record id or rrecord type")
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request cannot be nil")
+	}
+
+	if req.RecordId == "" {
+		return nil, status.Error(codes.InvalidArgument, "record ID cannot be empty")
+	}
+
+	if req.RecordType == "" {
+		return nil, status.Error(codes.InvalidArgument, "record type cannot be empty")
 	}
 	v, err := h.svc.GetAgrregatedRating(ctx, model.RecordID(req.RecordId), model.RecordType(req.RecordType))
 	if err != nil && errors.Is(err, rating.ErrRecordNotFound) {

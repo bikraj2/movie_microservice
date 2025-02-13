@@ -32,9 +32,9 @@ func (r *Repository) Get(_ context.Context, id string) (*model.Metadata, error) 
 	return m, nil
 }
 
-func (r *Repository) Put(_ context.Context, id string, metadata model.Metadata) error {
+func (r *Repository) Put(_ context.Context, id string, metadata *model.Metadata) error {
 	r.Lock()
 	defer r.Unlock()
-	r.data[id] = &metadata
+	r.data[id] = metadata
 	return nil
 }

@@ -3,6 +3,7 @@ package movie
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	metadataModel "bikraj.movie_microservice.net/metadata/pkg"
 	"bikraj.movie_microservice.net/movie/internal/gateway"
@@ -41,6 +42,7 @@ func (ctrl *Controller) Get(ctx context.Context, id string) (*model.MovieDetails
 	rating, err := ctrl.ratingGateway.GetAggregatedRating(ctx, ratingModel.RecordID(id), ratingModel.RecordTypeMovie)
 	if err != nil && errors.Is(err, gateway.ErrNotFound) {
 	} else if err != nil {
+		fmt.Println(rating)
 		details.Rating = &rating
 	}
 	return details, nil

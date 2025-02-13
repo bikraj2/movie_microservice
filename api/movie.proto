@@ -15,7 +15,7 @@ message MovieDetails {
 
 service MetadataService {
   rpc GetMetadata(GetMetadataReqeust) returns (GetMetadataResponse);
-  rpc PutMetadata(PutRatingRequest) returns (PutMetadataResponse);
+  rpc PutMetadata(PutMetadataRequest) returns (PutMetadataResponse);
 }
 
 message GetMetadataReqeust { string movie_id = 1; }

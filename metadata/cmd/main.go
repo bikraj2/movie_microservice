@@ -47,7 +47,7 @@ func main() {
 		panic(err)
 	}
 
-	registry, err := consul.NewRegistry("localhost:8500")
+	registry, err := consul.NewRegistry("host.docker.internal:8500")
 	if err != nil {
 		panic(err)
 	}

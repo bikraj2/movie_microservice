@@ -28,7 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MetadataServiceClient interface {
 	GetMetadata(ctx context.Context, in *GetMetadataReqeust, opts ...grpc.CallOption) (*GetMetadataResponse, error)
-	PutMetadata(ctx context.Context, in *PutRatingRequest, opts ...grpc.CallOption) (*PutMetadataResponse, error)
+	PutMetadata(ctx context.Context, in *PutMetadataRequest, opts ...grpc.CallOption) (*PutMetadataResponse, error)
 }
 
 type metadataServiceClient struct {
@@ -48,7 +48,7 @@ func (c *metadataServiceClient) GetMetadata(ctx context.Context, in *GetMetadata
 	return out, nil
 }
 
-func (c *metadataServiceClient) PutMetadata(ctx context.Context, in *PutRatingRequest, opts ...grpc.CallOption) (*PutMetadataResponse, error) {
+func (c *metadataServiceClient) PutMetadata(ctx context.Context, in *PutMetadataRequest, opts ...grpc.CallOption) (*PutMetadataResponse, error) {
 	out := new(PutMetadataResponse)
 	err := c.cc.Invoke(ctx, MetadataService_PutMetadata_FullMethodName, in, out, opts...)
 	if err != nil {
@@ -62,7 +62,7 @@ func (c *metadataServiceClient) PutMetadata(ctx context.Context, in *PutRatingRe
 // for forward compatibility
 type MetadataServiceServer interface {
 	GetMetadata(context.Context, *GetMetadataReqeust) (*GetMetadataResponse, error)
-	PutMetadata(context.Context, *PutRatingRequest) (*PutMetadataResponse, error)
+	PutMetadata(context.Context, *PutMetadataRequest) (*PutMetadataResponse, error)
 	mustEmbedUnimplementedMetadataServiceServer()
 }
 
@@ -73,7 +73,7 @@ type UnimplementedMetadataServiceServer struct {
 func (UnimplementedMetadataServiceServer) GetMetadata(context.Context, *GetMetadataReqeust) (*GetMetadataResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMetadata not implemented")
 }
-func (UnimplementedMetadataServiceServer) PutMetadata(context.Context, *PutRatingRequest) (*PutMetadataResponse, error) {
+func (UnimplementedMetadataServiceServer) PutMetadata(context.Context, *PutMetadataRequest) (*PutMetadataResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PutMetadata not implemented")
 }
 func (UnimplementedMetadataServiceServer) mustEmbedUnimplementedMetadataServiceServer() {}
@@ -108,7 +108,7 @@ func _MetadataService_GetMetadata_Handler(srv interface{}, ctx context.Context, 
 }
 
 func _MetadataService_PutMetadata_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PutRatingRequest)
+	in := new(PutMetadataRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -120,7 +120,7 @@ func _MetadataService_PutMetadata_Handler(srv interface{}, ctx context.Context, 
 		FullMethod: MetadataService_PutMetadata_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MetadataServiceServer).PutMetadata(ctx, req.(*PutRatingRequest))
+		return srv.(MetadataServiceServer).PutMetadata(ctx, req.(*PutMetadataRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

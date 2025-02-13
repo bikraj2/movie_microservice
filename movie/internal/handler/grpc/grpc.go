@@ -29,14 +29,20 @@ func (h *Handler) GetMovieDetails(ctx context.Context, req *gen.GetMovieDetailsR
 	}
 	m, err := h.ctrl.Get(ctx, req.MovieId)
 	if err != nil && errors.Is(err, movie.ErrNotFound) {
-		return nil, status.Errorf(codes.NotFound, err.Error())
+		return nil, status.Errorf(codes.NotFound, "%v", err.Error())
 	} else if err != nil {
-		return nil, status.Errorf(codes.Internal, err.Error())
+		return nil, status.Errorf(codes.Internal, "%v", err.Error())
+	}
+
+	var rating float64
+	if m.Rating != nil {
+		rating = *m.Rating
 	}
 	return &gen.GetMovieDetailsResponse{
 		MovieDetails: &gen.MovieDetails{
-			Metadata: model.MetadataToProto(&m.Metadata),
-			Rating:   float32(*m.Rating),
+			Metadata: model.MetadataToProto(&m.Metadata), // No need for `&m.Metadata`, pass it directly
+			Rating:   float32(rating),                    // Use helper function to avoid nil dereference
 		},
 	}, nil
+
 }

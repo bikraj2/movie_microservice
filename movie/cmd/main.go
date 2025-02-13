@@ -44,7 +44,8 @@ func main() {
 	}
 
 	ctx := context.Background()
-	registry, err := consul.NewRegistry("localhost:8500")
+	registry, err := consul.NewRegistry("host.docker.internal:8500")
+
 	if err != nil {
 		panic(err)
 	}
@@ -53,7 +54,6 @@ func main() {
 	if err := registry.Register(ctx, instanceID, serviceName, fmt.Sprintf("locahost:%d", cfg.APIConfig.Port)); err != nil {
 		panic(err)
 	}
-
 	go func() {
 		for {
 			if err := registry.ReportHealthyState(instanceID, serviceName); err != nil {
