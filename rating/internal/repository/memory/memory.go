@@ -2,6 +2,7 @@ package memory
 
 import (
 	"context"
+	// "fmt"
 
 	"bikraj.movie_microservice.net/rating/internal/repository"
 	"bikraj.movie_microservice.net/rating/pkg/model"
@@ -24,6 +25,7 @@ func (r *Repository) Get(ctx context.Context, recordID model.RecordID, recordTyp
 	if ratings, ok := r.data[recordType][recordID]; !ok || len(ratings) == 0 {
 		return nil, repository.ErrRecordNotFound
 	}
+	// fmt.Println("insider the repo", r.data[recordType][recordID])
 	return r.data[recordType][recordID], nil
 }
 

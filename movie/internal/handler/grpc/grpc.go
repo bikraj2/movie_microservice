@@ -1,12 +1,11 @@
 package grpc
 
 import (
-	"context"
-	"errors"
-
 	"bikraj.movie_microservice.net/gen"
 	model "bikraj.movie_microservice.net/metadata/pkg"
 	movie "bikraj.movie_microservice.net/movie/internal/controller"
+	"context"
+	"errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -33,7 +32,6 @@ func (h *Handler) GetMovieDetails(ctx context.Context, req *gen.GetMovieDetailsR
 	} else if err != nil {
 		return nil, status.Errorf(codes.Internal, "%v", err.Error())
 	}
-
 	var rating float64
 	if m.Rating != nil {
 		rating = *m.Rating
