@@ -15,6 +15,8 @@ import (
 	"bikraj.movie_microservice.net/metadata/internal/repository/memory"
 	"bikraj.movie_microservice.net/pkg/discovery"
 	"bikraj.movie_microservice.net/pkg/discovery/consul"
+	"github.com/grpc-ecosystem/go-grpc-middleware/ratelimit"
+	"golang.org/x/time/rate"
 	"google.golang.org/grpc"
 	"gopkg.in/yaml.v3"
 )
@@ -27,6 +29,16 @@ type serviceConfig struct {
 type apiConfig struct {
 	Port int `yaml:"port"`
 }
+type limiter struct {
+	l *rate.Limiter
+}
+
+func newLimiter(limit int, burst int) *limiter {
+	return &limiter{l: rate.NewLimiter(rate.Limit(limit), burst)}
+}
+func (l *limiter) Limit() bool {
+	return l.l.Allow()
+}
 
 func main() {
 	var port int
@@ -34,7 +46,7 @@ func main() {
 	flag.Parse()
 	log.Println("Starting the movie metadata service")
 
-	f, err := os.Open("base.yaml")
+	f, err := os.Open("../configs/base.yaml")
 	if err != nil {
 		panic(err)
 	}
@@ -47,7 +59,7 @@ func main() {
 		panic(err)
 	}
 
-	registry, err := consul.NewRegistry("host.docker.internal:8500")
+	registry, err := consul.NewRegistry("localhost:8500")
 	if err != nil {
 		panic(err)
 	}
@@ -74,7 +86,10 @@ func main() {
 	if err != nil {
 		log.Fatalf("faile to listen : %v", err.Error())
 	}
-	srv := grpc.NewServer()
+	l := newLimiter(5, 5)
+
+	srv := grpc.NewServer(grpc.UnaryInterceptor(ratelimit.UnaryServerInterceptor(l)))
+
 	gen.RegisterMetadataServiceServer(srv, h)
 	log.Println("Started the server on port: ", cfg.APIConfig.Port)
 	srv.Serve(lis)
